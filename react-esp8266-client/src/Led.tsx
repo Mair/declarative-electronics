@@ -21,18 +21,18 @@ export default class Led extends React.Component<LedProps, {}> {
             'Content-Type': 'application/json',
 
         });
-        fetch('http://localhost:3000/digitalwrite', {
-            body: JSON.stringify({
-                pins: [
-                    {
-                        pin: this.props.pin,
-                        digit: this.props.digit
-                    }
-                ]
-            }),
-            headers: myHeaders,
-            method: 'POST'
-        });
+            fetch('http://localhost:3000/digitalwrite', {
+                body: JSON.stringify({
+                    pins: [
+                        {
+                            pin: this.props.pin,
+                            digit: this.props.digit
+                        }
+                    ]
+                }),
+                headers: myHeaders,
+                method: 'POST'
+            });
     }
 
     render() {

@@ -22,3 +22,19 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+.demoPane {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.controllSegent {
+  display: flex;
+}
+
+.controllSegent > * {
+   margin-left: 30px;
+}

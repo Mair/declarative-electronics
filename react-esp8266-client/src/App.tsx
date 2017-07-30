@@ -1,37 +1,56 @@
 import * as React from 'react';
 import './App.css';
-import Led from './Led';
+import * as CompEl from './/composable-electronics';
+import { SketchPicker } from 'react-color';
 
 const logo = require('./logo.svg');
 
 interface AppState {
-  digit: number;
+  lEDiSoN: boolean;
+  ledrgb: string;
 }
+
+const ledStyle = {
+  width: '20px',
+  height: '20px',
+  border: '1px solid black',
+  borderRadius: '20px'
+};
+
 class App extends React.Component<{}, AppState> {
-  state = { digit: 0 };
+  state: AppState = { lEDiSoN: true, ledrgb: '#ffffff' };
+
+  ledOn = () => <div style={{ ...ledStyle, backgroundColor: 'yellow' }} />;
+  ledOnColor = ({ rgbColor }) => <div style={{ ...ledStyle, backgroundColor: rgbColor }} />;
+  ledOff = () => <div style={ledStyle} />;
+
   render() {
+
     return (
       <div className="App">
         <div className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <h2>Welcome to React</h2>
         </div>
-        <p className="App-intro">
-          To get started, edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <Led digit={this.state.digit} pin={13} />
-        <button
-          value="press"
-          onClick={() => {
-            if (this.state.digit === 1) {
-              this.setState({ digit: 0 });
-            } else {
-              this.setState({ digit: 1 });
-            }
-          }}
-        >
-          click me
-        </button>
+        <div className="demoPane">
+          <div className="controllSegent">
+            <button onClick={() => this.setState({ lEDiSoN: !this.state.lEDiSoN })} > click me </button>
+             <CompEl.Led isOn={this.state.lEDiSoN} pin={16} onTemplate={this.ledOn} offTemplate={this.ledOff} /> 
+          </div>
+            <div className="controllSegent">
+            <SketchPicker onChangeComplete={color => this.setState({ ledrgb: color.hex })} color={this.state.ledrgb} />
+            <CompEl.LedRGB
+              RPin={12}
+              GPin={14}
+              BPin={13}
+              isOn={true}
+              offTemplate={this.ledOff}
+              onTemplate={() => <this.ledOnColor rgbColor={this.state.ledrgb} />}
+              rgbColor={this.state.ledrgb}
+            />
+          </div>  
+        </div>
+
       </div >
     );
   }
