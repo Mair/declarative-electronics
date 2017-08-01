@@ -1,13 +1,14 @@
 import * as React from 'react';
 import './App.css';
 import * as CompEl from './/composable-electronics';
-import { SketchPicker } from 'react-color';
+// import { SketchPicker } from 'react-color';
 
 const logo = require('./logo.svg');
 
 interface AppState {
   lEDiSoN: boolean;
   ledrgb: string;
+  lastReadInput: number;
 }
 
 const ledStyle = {
@@ -18,7 +19,7 @@ const ledStyle = {
 };
 
 class App extends React.Component<{}, AppState> {
-  state: AppState = { lEDiSoN: true, ledrgb: '#ffffff' };
+  state: AppState = { lEDiSoN: true, ledrgb: '#ffffff', lastReadInput: 0 };
 
   ledOn = () => <div style={{ ...ledStyle, backgroundColor: 'yellow' }} />;
   ledOnColor = ({ rgbColor }) => <div style={{ ...ledStyle, backgroundColor: rgbColor }} />;
@@ -33,11 +34,11 @@ class App extends React.Component<{}, AppState> {
           <h2>Welcome to React</h2>
         </div>
         <div className="demoPane">
-          <div className="controllSegent">
+          {/* <div className="controllSegent">
             <button onClick={() => this.setState({ lEDiSoN: !this.state.lEDiSoN })} > click me </button>
-             <CompEl.Led isOn={this.state.lEDiSoN} pin={16} onTemplate={this.ledOn} offTemplate={this.ledOff} /> 
+            <CompEl.Led isOn={this.state.lEDiSoN} pin={16} onTemplate={this.ledOn} offTemplate={this.ledOff} />
           </div>
-            <div className="controllSegent">
+          <div className="controllSegent">
             <SketchPicker onChangeComplete={color => this.setState({ ledrgb: color.hex })} color={this.state.ledrgb} />
             <CompEl.LedRGB
               RPin={12}
@@ -48,8 +49,20 @@ class App extends React.Component<{}, AppState> {
               onTemplate={() => <this.ledOnColor rgbColor={this.state.ledrgb} />}
               rgbColor={this.state.ledrgb}
             />
-          </div>  
+          </div> */}
+          <div className="controllSegent">
+            <CompEl.Pin
+              mode={CompEl.PinMode.ANALOG}
+              pin={CompEl.NodeMCUV3Pins.AO}
+              value={0}
+              shouldRead={true}
+              frequencyOfPinRead={300}
+              onPinRead={val => this.setState({ lastReadInput: val.lastRead })}
+            />
+            {this.state.lastReadInput}
+          </div>
         </div>
+
 
       </div >
     );

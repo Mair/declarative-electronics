@@ -8,11 +8,26 @@ interface PinProps {
     pin: number;
     value: number;
     mode: CompElec.PinMode;
+    onPinRead?: (value) => void;
+    frequencyOfPinRead?: number;
+    shouldRead?: boolean;
 }
 export default class Pin extends React.PureComponent<PinProps> {
 
     componentDidMount() {
         this.initialMount();
+        if (this.props.onPinRead && this.props.frequencyOfPinRead && this.props.shouldRead) {
+            this.pollRead();
+        }
+    }
+
+    pollRead() {
+        let intervalID = setInterval(() => {
+            if (!this.props.shouldRead) {
+                clearInterval(intervalID)
+            }
+            actionPin(this.props);
+        }, this.props.frequencyOfPinRead)
     }
 
     async initialMount() {
@@ -28,24 +43,34 @@ export default class Pin extends React.PureComponent<PinProps> {
         }
         actionPin(nextProps);
     }
-    
+
     render() {
         return (
-            null
+            <div>
+                {this.props.children}
+            </div>
         );
     }
 }
 
-export const actionPin = ({ pin, value, mode }) => {
+export const actionPin = (props: PinProps) => {
     const { PinMode } = CompElec;
-    switch (mode) {
+    switch (props.mode) {
         case PinMode.OUTPUT:
-            api.digitalWrite(pin, value);
+            api.digitalWrite(props.pin, props.value);
             break;
         case PinMode.PWM:
-            api.analogWrite(pin, value);
+            api.analogWrite(props.pin, props.value);
             break;
+        case PinMode.ANALOG:
+            api.analogRead(props.pin)
+                .then(val => {
+                    if (props.onPinRead) {
+                        props.onPinRead(val);
+                    }
+                })
         default:
+
             Promise.resolve();
     }
 }

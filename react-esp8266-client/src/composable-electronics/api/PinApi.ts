@@ -20,11 +20,30 @@ export class PinApi {
         } catch (err) {console.error('error in API ', err); }
     }
 
+     async digitalRead(pin: number, value: number) {
+        try {
+            const response = await compElFetch('digitalread', 'POST', { pin });
+            if (!response.ok) {throw(response.status); }
+            return await response.json();             
+        } catch (err) {console.error('error in API ', err); }
+    }
+
    async analogWrite(pin: number, value: number) {
         try {
             const response = await compElFetch('analogwrite', 'POST', { pin, value });
             if (!response.ok) {throw(response.status); }
             return;           
         } catch (err) {console.error('error in API ', err); }
+    }
+
+    async analogRead(pin: number) {
+        try {
+            const response = await compElFetch('analogread', 'POST', { pin });
+            if (!response.ok) {throw(response.status); }
+            return await response.json();           
+        } catch (err) {
+            console.error('error in API ', err); 
+            return Promise.resolve();
+        }
     }
 } 
