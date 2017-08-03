@@ -1,9 +1,9 @@
-import * as React from 'react';
-import './App.css';
-import * as CompEl from './/composable-electronics';
-// import { SketchPicker } from 'react-color';
+import * as React from "react";
+import "./App.css";
+import * as CompEl from ".//composable-electronics";
+import { SketchPicker } from "react-color";
 
-const logo = require('./logo.svg');
+const logo = require("./logo.svg");
 
 interface AppState {
   lEDiSoN: boolean;
@@ -12,21 +12,21 @@ interface AppState {
 }
 
 const ledStyle = {
-  width: '20px',
-  height: '20px',
-  border: '1px solid black',
-  borderRadius: '20px'
+  width: "20px",
+  height: "20px",
+  border: "1px solid black",
+  borderRadius: "20px"
 };
 
 class App extends React.Component<{}, AppState> {
-  state: AppState = { lEDiSoN: true, ledrgb: '#ffffff', lastReadInput: 0 };
+  state: AppState = { lEDiSoN: true, ledrgb: "#ffffff", lastReadInput: 0 };
 
-  ledOn = () => <div style={{ ...ledStyle, backgroundColor: 'yellow' }} />;
-  ledOnColor = ({ rgbColor }) => <div style={{ ...ledStyle, backgroundColor: rgbColor }} />;
+  ledOn = () => <div style={{ ...ledStyle, backgroundColor: "yellow" }} />;
+  ledOnColor = ({ rgbColor }) =>
+    <div style={{ ...ledStyle, backgroundColor: rgbColor }} />
   ledOff = () => <div style={ledStyle} />;
 
   render() {
-
     return (
       <div className="App">
         <div className="App-header">
@@ -34,37 +34,50 @@ class App extends React.Component<{}, AppState> {
           <h2>Welcome to React</h2>
         </div>
         <div className="demoPane">
-          {/* <div className="controllSegent">
-            <button onClick={() => this.setState({ lEDiSoN: !this.state.lEDiSoN })} > click me </button>
-            <CompEl.Led isOn={this.state.lEDiSoN} pin={16} onTemplate={this.ledOn} offTemplate={this.ledOff} />
+          <div className="controllSegent">
+            <button
+              onClick={() => this.setState({ lEDiSoN: !this.state.lEDiSoN })}
+            >
+              click me
+            </button>
+            <CompEl.Led
+              isOn={this.state.lEDiSoN}
+              pin={CompEl.NodeMCUV3Pins.D1}
+              onTemplate={this.ledOn}
+              offTemplate={this.ledOff}
+            />
           </div>
           <div className="controllSegent">
-            <SketchPicker onChangeComplete={color => this.setState({ ledrgb: color.hex })} color={this.state.ledrgb} />
+            <SketchPicker
+              disableAlpha={true}
+              onChangeComplete={color => this.setState({ ledrgb: color.hex })}
+              color={this.state.ledrgb}
+            />
             <CompEl.LedRGB
               RPin={12}
               GPin={14}
               BPin={13}
               isOn={true}
               offTemplate={this.ledOff}
-              onTemplate={() => <this.ledOnColor rgbColor={this.state.ledrgb} />}
+              onTemplate={() =>
+                <this.ledOnColor rgbColor={this.state.ledrgb} />}
               rgbColor={this.state.ledrgb}
             />
-          </div> */}
+          </div>
           <div className="controllSegent">
             <CompEl.Pin
               mode={CompEl.PinMode.ANALOG}
               pin={CompEl.NodeMCUV3Pins.AO}
               value={0}
-              shouldRead={true}
-              frequencyOfPinRead={300}
-              onPinRead={val => this.setState({ lastReadInput: val.lastRead })}
+              onPinRead={val => this.setState({ lastReadInput: val })}
             />
+            <div style={{width : '563px', height: '10px', border: '1px solid black'}}>
+              <div style={{width:  this.state.lastReadInput - 440, height: '100%', backgroundColor: 'red'}} />
+              </div>
             {this.state.lastReadInput}
           </div>
         </div>
-
-
-      </div >
+      </div>
     );
   }
 }

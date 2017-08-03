@@ -55,6 +55,4 @@ export enum NodeMCUV3Pins {
   TX = 27,
   G5 = 28,
   V3_2 = 29
-
-
 }

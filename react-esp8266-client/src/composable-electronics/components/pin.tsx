@@ -1,76 +1,82 @@
-import * as React from 'react';
-import { PinApi } from '../api/PinApi';
-import * as CompElec from '../';
-
-const api = new PinApi();
+import * as React from "react";
+import { PinApi, Commands } from "../api/PinApi";
+import * as CompElec from "../";
 
 interface PinProps {
-    pin: number;
-    value: number;
-    mode: CompElec.PinMode;
-    onPinRead?: (value) => void;
-    frequencyOfPinRead?: number;
-    shouldRead?: boolean;
+  pin: number;
+  value: number;
+  mode: CompElec.PinMode;
+  onPinRead?: (value: number) => void;
+  pinConfiguration?: CompElec.NodeMCUV3Pins;
 }
+
 export default class Pin extends React.PureComponent<PinProps> {
+  pinApi = new PinApi();
 
-    componentDidMount() {
-        this.initialMount();
-        if (this.props.onPinRead && this.props.frequencyOfPinRead && this.props.shouldRead) {
-            this.pollRead();
-        }
-    }
+  componentDidMount() {
+    this.mountPin();
+  }
 
-    pollRead() {
-        let intervalID = setInterval(() => {
-            if (!this.props.shouldRead) {
-                clearInterval(intervalID)
-            }
-            actionPin(this.props);
-        }, this.props.frequencyOfPinRead)
+  componentWillReceiveProps(nextProps: PinProps) {
+    // parent state changes will cause this component to re-render.
+    // this will inturn cause our socket to fire
+    // this is undesirable unless one of the properties has changed
+    if (
+      nextProps.pin === this.props.pin &&
+      nextProps.value === this.props.value &&
+      nextProps.mode === this.props.mode
+    ) {
+      return;
     }
+    this.mountPin();
+  }
 
-    async initialMount() {
-        await api.pinMode(this.props.pin, this.props.mode);
-        actionPin(this.props);
+  async mountPin() {
+    try {
+      const api = await this.pinApi.ensureSocketReady();
+      actionPin(api, this.props, this.props.onPinRead);
+    } catch (err) {
+      console.error(err);
     }
+  }
 
-    componentWillReceiveProps(nextProps: PinProps) {
-        if (nextProps.mode === this.props.mode &&
-            nextProps.pin === this.props.pin &&
-            nextProps.value === this.props.value) {
-            return;
-        }
-        actionPin(nextProps);
-    }
-
-    render() {
-        return (
-            <div>
-                {this.props.children}
-            </div>
-        );
-    }
+  render() {
+    return (
+      <div>
+        {this.props.children}
+      </div>
+    );
+  }
 }
 
-export const actionPin = (props: PinProps) => {
-    const { PinMode } = CompElec;
-    switch (props.mode) {
-        case PinMode.OUTPUT:
-            api.digitalWrite(props.pin, props.value);
-            break;
-        case PinMode.PWM:
-            api.analogWrite(props.pin, props.value);
-            break;
-        case PinMode.ANALOG:
-            api.analogRead(props.pin)
-                .then(val => {
-                    if (props.onPinRead) {
-                        props.onPinRead(val);
-                    }
-                })
-        default:
-
-            Promise.resolve();
-    }
-}
+export const actionPin = (
+  api: Commands,
+  props: PinProps,
+  onPinRead?: (value: number) => void
+) => {
+  const { PinMode } = CompElec;
+  switch (props.mode) {
+    case PinMode.OUTPUT:
+      api.digitalWrite(props.pin, props.value);
+      break;
+    case PinMode.PWM:
+      api.analogWrite(props.pin, props.value);
+      break;
+    case PinMode.ANALOG:
+      if (!props.onPinRead) {
+        // todo: ms change this to show pin nme instead of number
+        throw `pin ${props.pin} is set to analog input. please supply a onPinRead callback`;
+      }
+      api.analogRead(props.pin, props.onPinRead);
+      break;
+    case PinMode.INPUT:
+      if (!props.onPinRead) {
+        // todo: ms change this to show pin nme instead of number
+        throw `pin ${props.pin} is set to digital input. please supply a onPinRead callback`;
+      }
+      api.digitalRead(props.pin, props.onPinRead);
+      break;
+    default:
+      console.error("invalid mode");
+  }
+};
