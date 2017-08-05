@@ -9,7 +9,7 @@ function routes(app, board, wss) {
         var pongReceivedBridge;
         var checkIsAlive = function () {
             return new Promise(function (res) {
-                var timeOutHandel = setTimeout(function () { return res(false); }, 3000);
+                var timeOutHandel = setTimeout(function () { return res(false); }, 5000);
                 pongReceivedBridge = function () {
                     clearTimeout(timeOutHandel);
                     res(true);

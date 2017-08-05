@@ -23,7 +23,7 @@ export default function routes(
 
     const checkIsAlive = () => {
       return new Promise(res => {
-        let timeOutHandel = setTimeout(() => res(false), 3000);
+        let timeOutHandel = setTimeout(() => res(false), 5000);
         pongReceivedBridge = () => {
           clearTimeout(timeOutHandel);
           res(true);
