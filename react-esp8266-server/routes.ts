@@ -19,6 +19,26 @@ export default function routes(
   wss.on("error", err => console.error(err));
 
   wss.on("connection", function connection(ws, req) {
+    let pongReceivedBridge;
+
+    const checkIsAlive = () => {
+      return new Promise(res => {
+        let timeOutHandel = setTimeout(() => res(false), 3000);
+        pongReceivedBridge = () => {
+          clearTimeout(timeOutHandel);
+          res(true);
+        };
+
+        ws.ping("", false, true);
+      });
+    };
+
+    ws.on("pong", () => {
+      if (pongReceivedBridge) {
+        pongReceivedBridge();
+      }
+    });
+
     ws.on("message", function incoming(message) {
       try {
         const payload = JSON.parse(message.toString()) as Payload;
@@ -30,16 +50,22 @@ export default function routes(
           case "digitalRead":
             checkAndSetPinMode(payload.pin, PinMode.INPUT);
             board.digitalRead(payload.pin, value => {
-              ws.send(
-                JSON.stringify({
-                  command: "digitalRead",
-                  pin: payload.pin,
-                  value
-                }),
-                err => {
-                  console.error(err);
+              checkIsAlive().then(isAlive => {
+                if (!isAlive) {
+                  ws.terminate();
+                  return;
                 }
-              );
+                ws.send(
+                  JSON.stringify({
+                    command: "digitalRead",
+                    pin: payload.pin,
+                    value
+                  }),
+                  err => {
+                    console.error(err);
+                  }
+                );
+              });
             });
             break;
           case "analogWrite":
@@ -48,26 +74,27 @@ export default function routes(
             break;
           case "analogRead":
             checkAndSetPinMode(payload.pin, PinMode.ANALOG);
-            board.analogRead(payload.pin, value =>{
-             // if(wss.clients)
-              ws.send(
-                JSON.stringify({
-                  command: "analogRead",
-                  pin: payload.pin,
-                  value,
-                  mode: PinMode.ANALOG
-                }),
-                err => {
-                  if (!err) {
-                    return;
-                  }
-                  console.error("error reading analog.", err);
-                  console.error(
-                    "setting pin to output.reset when error is corrected"
-                  );
-                  checkAndSetPinMode(payload.pin, PinMode.OUTPUT);
+            board.analogRead(payload.pin, value => {
+              checkIsAlive().then(isAlive => {
+                if (!isAlive) {
+                  ws.terminate();
+                  return;
                 }
-              )
+                ws.send(
+                  JSON.stringify({
+                    command: "analogRead",
+                    pin: payload.pin,
+                    value,
+                    mode: PinMode.ANALOG
+                  }),
+                  err => {
+                    if (!err) {
+                      return;
+                    }
+                    console.error("error reading analog.", err);
+                  }
+                );
+              });
             });
             break;
           default:

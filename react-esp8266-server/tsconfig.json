@@ -5,7 +5,10 @@
         "module": "commonjs",
         "outDir": "dist",
         "sourceMap": true,
-        "watch": true
+        "watch": true,
+        "lib": [
+            "es7"
+        ]
     },
     "exclude": [
         "node_modules"

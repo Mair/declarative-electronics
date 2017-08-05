@@ -6,6 +6,22 @@ function routes(app, board, wss) {
     var pinMapSet = {};
     wss.on("error", function (err) { return console.error(err); });
     wss.on("connection", function connection(ws, req) {
+        var pongReceivedBridge;
+        var checkIsAlive = function () {
+            return new Promise(function (res) {
+                var timeOutHandel = setTimeout(function () { return res(false); }, 3000);
+                pongReceivedBridge = function () {
+                    clearTimeout(timeOutHandel);
+                    res(true);
+                };
+                ws.ping("", false, true);
+            });
+        };
+        ws.on("pong", function () {
+            if (pongReceivedBridge) {
+                pongReceivedBridge();
+            }
+        });
         ws.on("message", function incoming(message) {
             try {
                 var payload_1 = JSON.parse(message.toString());
@@ -17,12 +33,18 @@ function routes(app, board, wss) {
                     case "digitalRead":
                         checkAndSetPinMode(payload_1.pin, pinMode_1.PinMode.INPUT);
                         board.digitalRead(payload_1.pin, function (value) {
-                            ws.send(JSON.stringify({
-                                command: "digitalRead",
-                                pin: payload_1.pin,
-                                value: value
-                            }), function (err) {
-                                console.error(err);
+                            checkIsAlive().then(function (isAlive) {
+                                if (!isAlive) {
+                                    ws.terminate();
+                                    return;
+                                }
+                                ws.send(JSON.stringify({
+                                    command: "digitalRead",
+                                    pin: payload_1.pin,
+                                    value: value
+                                }), function (err) {
+                                    console.error(err);
+                                });
                             });
                         });
                         break;
@@ -33,19 +55,22 @@ function routes(app, board, wss) {
                     case "analogRead":
                         checkAndSetPinMode(payload_1.pin, pinMode_1.PinMode.ANALOG);
                         board.analogRead(payload_1.pin, function (value) {
-                            // if(wss.clients)
-                            ws.send(JSON.stringify({
-                                command: "analogRead",
-                                pin: payload_1.pin,
-                                value: value,
-                                mode: pinMode_1.PinMode.ANALOG
-                            }), function (err) {
-                                if (!err) {
+                            checkIsAlive().then(function (isAlive) {
+                                if (!isAlive) {
+                                    ws.terminate();
                                     return;
                                 }
-                                console.error("error reading analog.", err);
-                                console.error("setting pin to output.reset when error is corrected");
-                                checkAndSetPinMode(payload_1.pin, pinMode_1.PinMode.OUTPUT);
+                                ws.send(JSON.stringify({
+                                    command: "analogRead",
+                                    pin: payload_1.pin,
+                                    value: value,
+                                    mode: pinMode_1.PinMode.ANALOG
+                                }), function (err) {
+                                    if (!err) {
+                                        return;
+                                    }
+                                    console.error("error reading analog.", err);
+                                });
                             });
                         });
                         break;
