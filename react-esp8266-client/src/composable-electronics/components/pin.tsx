@@ -1,17 +1,36 @@
 import * as React from "react";
 import { PinApi, Commands } from "../api/PinApi";
 import * as CompElec from "../";
+import { compElProptypes } from './CompElProvider';
+import { ChipDefinition, getChipDefinitionFromName, lookUpName, validatePinNumber } from '../chipDefinitionPins';
 
 interface PinProps {
-  pin: number;
+  pin: number | string;
   value: number;
   mode: CompElec.PinMode;
   onPinRead?: (value: number) => void;
-  pinConfiguration?: CompElec.NodeMCUV3Pins;
 }
 
 export default class Pin extends React.PureComponent<PinProps> {
-  pinApi = new PinApi();
+
+  private static _pinApi;
+  private chipDefinitionPins: ChipDefinition;
+
+  static contextTypes = compElProptypes;
+
+  constructor(props: any, context: any) {
+    super(props, context);
+    if (!Pin._pinApi) {
+      Pin._pinApi = new PinApi(context.serviceUrl);
+    }
+     const {chipDefinition} = context; 
+      if (typeof chipDefinition === 'string') {
+        this.chipDefinitionPins = getChipDefinitionFromName(chipDefinition);
+      } else {
+        this.chipDefinitionPins = chipDefinition;
+      }
+
+  }
 
   componentDidMount() {
     this.mountPin();
@@ -32,9 +51,18 @@ export default class Pin extends React.PureComponent<PinProps> {
   }
 
   async mountPin() {
+    let pinNumber: number;
+    if (typeof this.props.pin === 'number') {
+      pinNumber = this.props.pin;
+    } else {
+      pinNumber = lookUpName(this.chipDefinitionPins, this.props.pin);
+    }
+    if (this.chipDefinitionPins) {
+      validatePinNumber(this.chipDefinitionPins, pinNumber, this.props.mode);
+    }
     try {
-      const api = await this.pinApi.ensureSocketReady();
-      actionPin(api, this.props, this.props.onPinRead);
+      const api = await Pin._pinApi.ensureSocketReady();
+      actionPin(api, pinNumber, this.props.value, this.props.mode, this.props.onPinRead);
     } catch (err) {
       console.error(err);
     }
@@ -51,30 +79,32 @@ export default class Pin extends React.PureComponent<PinProps> {
 
 export const actionPin = (
   api: Commands,
-  props: PinProps,
+  pin: number,
+  value: number,
+  mode: CompElec.PinMode,
   onPinRead?: (value: number) => void
 ) => {
   const { PinMode } = CompElec;
-  switch (props.mode) {
+  switch (mode) {
     case PinMode.OUTPUT:
-      api.digitalWrite(props.pin, props.value);
+      api.digitalWrite(pin, value);
       break;
     case PinMode.PWM:
-      api.analogWrite(props.pin, props.value);
+      api.analogWrite(pin, value);
       break;
     case PinMode.ANALOG:
-      if (!props.onPinRead) {
+      if (!onPinRead) {
         // todo: ms change this to show pin nme instead of number
-        throw `pin ${props.pin} is set to analog input. please supply a onPinRead callback`;
+        throw `pin ${pin} is set to analog input. please supply a onPinRead callback`;
       }
-      api.analogRead(props.pin, props.onPinRead);
+      api.analogRead(pin, onPinRead);
       break;
     case PinMode.INPUT:
-      if (!props.onPinRead) {
+      if (!onPinRead) {
         // todo: ms change this to show pin nme instead of number
-        throw `pin ${props.pin} is set to digital input. please supply a onPinRead callback`;
+        throw `pin ${pin} is set to digital input. please supply a onPinRead callback`;
       }
-      api.digitalRead(props.pin, props.onPinRead);
+      api.digitalRead(pin, onPinRead);
       break;
     default:
       console.error("invalid mode");

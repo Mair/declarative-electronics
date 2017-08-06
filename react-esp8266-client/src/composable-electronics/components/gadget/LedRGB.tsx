@@ -3,9 +3,9 @@ import * as CompEl from '../../';
 import { hexToRgb } from './../../helpers/hexToRgb';
 
 interface LedProps {
-    RPin: number;
-    GPin: number;
-    BPin: number;
+    RPin: number | string;
+    GPin: number | string;
+    BPin: number | string;
     isOn: boolean;
     rgbColor: string;
     onTemplate: React.StatelessComponent;

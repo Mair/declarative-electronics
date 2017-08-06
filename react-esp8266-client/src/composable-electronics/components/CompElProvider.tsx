@@ -1,36 +1,28 @@
 import * as React from "react";
 import * as PropTypes from "prop-types";
-import { PinMode } from "../";
-
-interface PinDefinition {
-  name: string;
-  number: number;
-  validModes: PinMode[];
-}
-interface ChipDefinition {
-  pins: PinDefinition[];
-}
+import { ChipDefinition } from "../chipDefinitionPins";
 
 interface CreateCompElProviderProps {
   serviceUrl: string;
   chipDefinition?: ChipDefinition | string;
 }
 
-const jsProptypes = {
-      chipDefinition: PropTypes.oneOfType([
-        PropTypes.shape({
-          name: PropTypes.string.isRequired,
-          number: PropTypes.number.isRequired,
-          validModes: PropTypes.arrayOf(PropTypes.number)
-        }),
-        PropTypes.number
-      ])
-    };
+export const compElProptypes = {
+  chipDefinition: PropTypes.oneOfType([
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      number: PropTypes.number.isRequired,
+      validModes: PropTypes.arrayOf(PropTypes.number)
+    }),
+    PropTypes.string
+  ]),
+  serviceUrl: PropTypes.string.isRequired
+};
 
 export function createCompElProvider() {
   class Provider extends React.Component<CreateCompElProviderProps> {
-    static propTypes = jsProptypes;
-    static childContextTypes = jsProptypes;
+    static propTypes = compElProptypes;
+    static childContextTypes = compElProptypes;
 
     serviceUrl: string;
     chipDefinition?: ChipDefinition | string;

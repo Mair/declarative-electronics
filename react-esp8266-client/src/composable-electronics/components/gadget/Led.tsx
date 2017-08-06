@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as CompEl from '../../';
 
 interface LedProps {
-    pin: number;
+    pin: number | string;
     isOn: boolean;
     onTemplate: React.StatelessComponent;
     offTemplate: React.StatelessComponent;

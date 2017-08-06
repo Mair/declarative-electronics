@@ -3,8 +3,6 @@ import "./App.css";
 import * as CompEl from ".//composable-electronics";
 import { SketchPicker } from "react-color";
 
-const logo = require("./logo.svg");
-
 interface AppState {
   lEDiSoN: boolean;
   ledrgb: string;
@@ -27,12 +25,8 @@ class App extends React.Component<{}, AppState> {
   ledOff = () => <div style={ledStyle} />;
 
   render() {
-    return (
-      <div className="App">
-        <div className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h2>Welcome to React</h2>
-        </div>
+    const percent = (this.state.lastReadInput - 440) / 563 * 100;
+    return (   
         <div className="demoPane">
           <div className="controllSegent">
             <button
@@ -42,7 +36,7 @@ class App extends React.Component<{}, AppState> {
             </button>
             <CompEl.Led
               isOn={this.state.lEDiSoN}
-              pin={CompEl.NodeMCUV3Pins.D1}
+              pin="D1"
               onTemplate={this.ledOn}
               offTemplate={this.ledOff}
             />
@@ -54,9 +48,9 @@ class App extends React.Component<{}, AppState> {
               color={this.state.ledrgb}
             />
             <CompEl.LedRGB
-              RPin={12}
-              GPin={14}
-              BPin={13}
+              RPin="D6"
+              GPin="D5"
+              BPin="D7"
               isOn={true}
               offTemplate={this.ledOff}
               onTemplate={() =>
@@ -67,17 +61,16 @@ class App extends React.Component<{}, AppState> {
           <div className="controllSegent">
             <CompEl.Pin
               mode={CompEl.PinMode.ANALOG}
-              pin={CompEl.NodeMCUV3Pins.AO}
+              pin="A0"
               value={0}
               onPinRead={val => this.setState({ lastReadInput: val })}
             />
-            <div style={{width : '563px', height: '10px', border: '1px solid black'}}>
-              <div style={{width:  this.state.lastReadInput - 440, height: '100%', backgroundColor: 'red'}} />
+            <div style={{width : '100%', height: '10px', border: '1px solid black'}}>
+              <div style={{width:  percent , height: '100%', backgroundColor: 'red'}} />
               </div>
             {this.state.lastReadInput}
           </div>
         </div>
-      </div>
     );
   }
 }

@@ -1,0 +1,1 @@
+export const ESP8266_NODE_MCU_V3 = "ESP8266_NODE_MCU_V3";

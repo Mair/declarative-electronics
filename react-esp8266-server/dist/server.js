@@ -8,7 +8,7 @@ var http = require("http");
 var routes_1 = require("./routes");
 var WebSocket = require("ws");
 var etherPort = new Etherport.EtherPortClient({
-    host: "192.168.1.108",
+    host: "192.168.43.69",
     port: 3030
 });
 var board = new firmata(etherPort);

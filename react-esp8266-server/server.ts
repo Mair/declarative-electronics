@@ -8,7 +8,7 @@ import registerRoutes from './routes';
 import * as WebSocket from 'ws';
 
 const etherPort = new Etherport.EtherPortClient({
-    host: "192.168.1.108",  // IP ESP8266
+    host: "192.168.43.69",  // IP ESP8266
     port: 3030
 })
 const board = new firmata(etherPort);
